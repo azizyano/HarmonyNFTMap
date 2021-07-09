@@ -1,8 +1,8 @@
 {
-  "name": "chainlink_betting_game",
+  "name": "harmony_nft_map",
   "version": "0.1.0",
-  "description": "Betting Game",
-  "author": "github.com/xternet",
+  "description": "NFT map in harmony blockchain",
+  "author": "github.com/azizyano",
   "homepage": ".",
   "dependencies": {
     "@harmony-js/core": "^0.1.57",
