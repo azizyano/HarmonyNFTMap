@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Loading from "./Loading";
 import Navbar from "./Navbar";
 import Main from "./Main";
+import BuyForm from "./BuyForm"
 import flag from "../logos/target.png";
 import { Map, Draggable } from "pigeon-maps";
 import ipfs from "./IPFSUploader";
@@ -35,14 +36,12 @@ class App extends Component {
     let accounts,
       network,
       balance,
-      web3,
       totalItems,
       contract1,
       contract2,
       contract1_abi,
       contract2_abi,
       nftbalance,
-      tokenURL;
     web3 = window.web3;
     // Load account
     this.setState({ web3: web3 });
@@ -52,8 +51,8 @@ class App extends Component {
     if (networkData) {
       contract1_abi = HERC721.abi;
       contract2_abi = HRC721Crowdsale.abi;
-      const contract1_address = "0x6d6302fB1b5c995977EDd1F52fE8f2499D83455B";
-      const contract2_address = "0x37ee84592F334dA6C81080e33F372330346dEfd9";
+      const contract1_address = "0xd22AEC956Cc97cc25ac0F8F93fdc8F19a430Ad5c";
+      const contract2_address = "0x94286a74ef86E19A42046Da8dC5A4486B01AAF88";
       contract1 = new web3.eth.Contract(contract1_abi, contract1_address);
       contract2 = new web3.eth.Contract(contract2_abi, contract2_address);
       accounts = await web3.eth.getAccounts();
@@ -61,10 +60,7 @@ class App extends Component {
       balance = await web3.eth.getBalance(accounts[0]);
       totalItems = await contract2.methods.totalItems().call();
       nftbalance = await contract1.methods.balanceOf(accounts[0]).call();
-      tokenURL = await contract2.methods.getUrl("0").call();
 
-      console.log("here" + tokenURL);
-      console.log(nftbalance);
       this.setState({
         account: accounts[0],
         balance: balance,
@@ -77,14 +73,17 @@ class App extends Component {
       });
       // Load Colors
       for (var i = 1; i <= totalItems; i++) {
-        const tokenURL = await contract2.methods.getUrl(i - 1).call();
+        const URL = await contract2.methods.getUrl(i - 1).call();
+        const nftjson = await this.loadingMetadata(URL)
+        const imgURL = "https://ipfs.io/ipfs/" + nftjson.ipfsHash
         this.setState({
-          tokenURL: [...this.state.tokenURL, tokenURL],
+          tokenURL: [...this.state.tokenURL, imgURL], nftjson: [...this.state.nftjson, nftjson]
         });
       }
     } else {
       window.alert("Smart contract not deployed to detected network.");
     }
+    console.log(this.state.nftjson)
     window.ethereum.on("chainChanged", async (chainId) => {
       network = parseInt(chainId, 16);
       if (network !== 1666700000) {
@@ -133,6 +132,7 @@ class App extends Component {
       contractAddress1: null,
       contractAddress2: null,
       tokenURL: [],
+      nftjson: [],
       name: "",
       phoneNo: "",
       file: null,
@@ -160,7 +160,6 @@ class App extends Component {
     reader.readAsArrayBuffer(file);
     reader.onloadend = () => {
       this.setState({ buffer: Buffer(reader.result) });
-      console.log("buffer", this.state.buffer);
     };
   }
   handledata = async (event) => {
@@ -222,7 +221,9 @@ class App extends Component {
       return this.setState({ ipfsHash: result[0].hash });
     });
   };
+  nftlinkByItem(itemId){
 
+  }
   render() {
     return (
       <div>
@@ -244,13 +245,13 @@ class App extends Component {
           <Main
             amount={this.state.amount}
             balance={this.state.balance}
-            makeBet={this.makeBet}
             onChange={this.onChange}
             totalItems={this.state.totalItems}
             loading={this.state.loading}
             web3={this.state.web3}
           />
         )}
+
         <div
           className="container-fluid mt-5 col-m-4"
           style={{ maxWidth: "1000px" }}
@@ -274,15 +275,17 @@ class App extends Component {
                                 style={{ backgroundColor: "blue" }}
                               ></div>
                               <div className="card-body card bg-info mb-3">
-                                <h5 className="card-title">NFT title </h5>
+                                <h5 className="card-title">{this.state.nftjson[key].Name }</h5>
                                 <p className="card-text">
-                                  IPFS LINK {tokenURL}
+                                creator: {this.state.nftjson[key].account }
                                 </p>
-
+                                <p className="card-text">
+                                total number of NFT: {this.state.nftjson[key].limit }
+                                </p>
                                 <img
                                   src={tokenURL}
                                   className="rounded img-fluid"
-                                  alt="Cinque Terre"
+                                  alt="NFT"
                                   height="150px"
                                   width="150px"
                                 ></img>
@@ -307,7 +310,7 @@ class App extends Component {
                                 src={flag}
                                 width={100}
                                 height={95}
-                                alt="Pigeon!"
+                                alt="flag!"
                               />
                             </Draggable>
                           </Map>
@@ -386,6 +389,11 @@ class App extends Component {
                       </form>
                       <button onClick={this.handledata}>Create nft</button>
                     </div>
+                    <BuyForm
+                      balance={this.state.balance}
+                      totalItems={this.state.totalItems}
+                      web3={this.state.web3}
+                    />
                   </div>
                 </div>
               </div>
@@ -393,6 +401,7 @@ class App extends Component {
           </div>
         </div>
       </div>
+      
     );
   }
 }
