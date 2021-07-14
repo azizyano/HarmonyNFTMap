@@ -389,13 +389,7 @@ class App extends Component {
                       onChange={this.handleupload}
                     />
 
-                    <button
-                      class="btn btn-outline-secondary"
-                      type="button"
-                      id="inputGroupFileAddon04"
-                    >
-                      Upload
-                    </button>
+
                   </div>
 
                   {!this.state.ipfsHash ? (
@@ -414,7 +408,16 @@ class App extends Component {
                       />
                     </div>
                   )}
-                </div>
+                </div >
+                <div className="text-center">
+                  <button
+                      class="btn btn-outline-secondary "
+                     
+                    >
+                      Upload to IPFS
+                    </button></div >
+                
+
               </form>
               <br></br>
               <button

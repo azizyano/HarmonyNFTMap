@@ -106,7 +106,11 @@ class MintItems extends Component {
           
           <button class="btn btn-outline-secondary" type="button" id="inputGroupFileAddon04">Upload</button>
           </div>
-        
+
+          </div>
+</form>
+        <div>
+                    
           {!this.state.ipfsHash ? (
             <div
               id="loader"
@@ -123,8 +127,7 @@ class MintItems extends Component {
               />
             </div>
           )}
-          </div>
-</form>
+        </div>
         <br></br>
         <button class="btn btn-outline-secondary"  type="button" id="inputGroupFileAddon04" onClick={this.handledata}>Creat NFT Item</button>
       </div>
