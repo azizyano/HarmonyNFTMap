@@ -1,10 +1,12 @@
 import React, { Component } from "react";
-import Loading from "./Loading";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { Navigation, About, Harmony } from "./";
 import Navbar from "./Navbar";
 import Main from "./Main";
-import BuyForm from "./BuyForm"
+import BuyForm from "./BuyForm";
+import MintItems from "./MintItems";
 import flag from "../logos/target.png";
-import { Map, Draggable } from "pigeon-maps";
+import { Map, Draggable, Marker } from "pigeon-maps";
 import ipfs from "./IPFSUploader";
 import Web3 from "web3";
 import HERC721 from "../abis/HRC721.json";
@@ -33,6 +35,15 @@ class App extends Component {
   }
 
   async loadBlockchainData() {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const imagePosition = position.coords;
+      const latitude = imagePosition.latitude;
+      const longitude = imagePosition.longitude;
+      this.setState({
+        latitude: latitude,
+        longitude: longitude,
+      });
+    });
     let accounts,
       network,
       balance,
@@ -42,7 +53,7 @@ class App extends Component {
       contract1_abi,
       contract2_abi,
       nftbalance,
-    web3 = window.web3;
+      web3 = window.web3;
     // Load account
     this.setState({ web3: web3 });
     const networkId = await web3.eth.net.getId();
@@ -51,12 +62,11 @@ class App extends Component {
     if (networkData) {
       contract1_abi = HERC721.abi;
       contract2_abi = HRC721Crowdsale.abi;
-      const contract1_address = "0xd22AEC956Cc97cc25ac0F8F93fdc8F19a430Ad5c";
-      const contract2_address = "0x94286a74ef86E19A42046Da8dC5A4486B01AAF88";
+      const contract1_address = "0x7C13bB2Ad930aC5A20077dDb7a35A3bfF837f12f";
+      const contract2_address = "0x8e5186051F30e2f5405b0cC311344406328911Af";
       contract1 = new web3.eth.Contract(contract1_abi, contract1_address);
       contract2 = new web3.eth.Contract(contract2_abi, contract2_address);
       accounts = await web3.eth.getAccounts();
-      console.log(contract1, contract2);
       balance = await web3.eth.getBalance(accounts[0]);
       totalItems = await contract2.methods.totalItems().call();
       nftbalance = await contract1.methods.balanceOf(accounts[0]).call();
@@ -74,16 +84,23 @@ class App extends Component {
       // Load Colors
       for (var i = 1; i <= totalItems; i++) {
         const URL = await contract2.methods.getUrl(i - 1).call();
-        const nftjson = await this.loadingMetadata(URL)
-        const imgURL = "https://ipfs.io/ipfs/" + nftjson.ipfsHash
-        this.setState({
-          tokenURL: [...this.state.tokenURL, imgURL], nftjson: [...this.state.nftjson, nftjson]
-        });
+        console.log(URL);
+        const nftjson = await this.loadingMetadata(URL);
+        console.log(nftjson);
+        if (nftjson === undefined) {
+          console.log(nftjson);
+        } else {
+          const imgURL = "https://ipfs.io/ipfs/" + nftjson.ipfsHash;
+          this.setState({
+            tokenURL: [...this.state.tokenURL, imgURL],
+            nftjson: [...this.state.nftjson, nftjson],
+          });
+        }
       }
     } else {
       window.alert("Smart contract not deployed to detected network.");
     }
-    console.log(this.state.nftjson)
+
     window.ethereum.on("chainChanged", async (chainId) => {
       network = parseInt(chainId, 16);
       if (network !== 1666700000) {
@@ -91,7 +108,7 @@ class App extends Component {
       } else {
         if (this.state.account) {
           balance = await this.state.web3.eth.getBalance(this.state.account);
-          totalItems = await this.state.web3.eth.totalItems().call();
+          totalItems = await this.state.contract2.methods.totalItems().call();
           this.setState({ balance: balance, totalItems: totalItems });
         }
         this.setState({
@@ -105,22 +122,26 @@ class App extends Component {
   }
   async loadingMetadata(URL) {
     const resp = await fetch(URL);
-    return resp.json().then((metadata) => {
-      return metadata;
-    });
-  }
-  onChange(value) {
-    this.setState({ amount: value });
+    console.log(resp);
+    return resp
+      .json()
+      .then((metadata) => {
+        return metadata;
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   constructor(props) {
     super(props);
     this.state = {
+      latitude: null,
+      longitude: null,
       anchor: [30.394324, -9.561427],
       account: null,
       limit: "0",
       price: "0",
-      amount: null,
       balance: null,
       contract1: null,
       contract2: null,
@@ -142,7 +163,6 @@ class App extends Component {
     };
 
     this.setState = this.setState.bind(this);
-    this.onChange = this.onChange.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleupload = this.handleupload.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -162,6 +182,7 @@ class App extends Component {
       this.setState({ buffer: Buffer(reader.result) });
     };
   }
+
   handledata = async (event) => {
     event.preventDefault();
     const jsondata = {
@@ -175,41 +196,39 @@ class App extends Component {
     var buf = Buffer.from(JSON.stringify(jsondata));
     console.log(buf);
     this.setState({ jsondata: jsondata });
-    await ipfs.files.add(
-      { path: "metadata.json", content: buf },
-      { wrapWithDirectory: true },
-      (error, result) => {
-        console.log(result[0].hash);
-        if (error) {
-          console.error(error);
-          return;
-        }
-        return this.setState({ ipfsHash2: result[0].hash });
-      }
+
+    const metadataCid = await ipfs.files.add(
+      { path: this.state.totalItems + ".json", content: buf },
+      { wrapWithDirectory: true }
     );
+
+    console.log(metadataCid[0].hash);
+
     const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
       new BN(1)
     );
+
     const gasLimit = 6721900;
-    const url = "https://ipfs.io/ipfs/" + this.state.ipfsHash2;
+    const url = "https://ipfs.io/ipfs/" + metadataCid[0].hash;
     this.state.contract2.methods
       .addItem(this.state.limit, this.state.price, url)
       .send({ from: this.state.account, gasPrice, gasLimit })
       .once("receipt", (receipt) => {
-        this.setState({
-          tokenURL: [...this.state.tokenURL, url],
-        });
-      });
-    this.state.contract1.methods
-      .mint(this.state.account, this.state.totalItems)
-      .send({ from: this.state.account, gasPrice, gasLimit })
-      .once("receipt", (receipt) => {
-        this.setState({
-          tokenURL: [...this.state.tokenURL, url],
-        });
+        console.log(receipt);
       });
   };
-
+  mintNft = async (itmeId) => {
+    const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
+      new BN(1)
+    );
+    const gasLimit = 6721900;
+    this.state.contract1.methods
+      .mint(this.state.account, itmeId)
+      .send({ from: this.state.account, gasPrice, gasLimit })
+      .once("receipt", (receipt) => {
+        console.log(receipt);
+      });
+  };
   handleSubmit = async (event) => {
     event.preventDefault();
     await ipfs.files.add(this.state.buffer, (error, result) => {
@@ -221,187 +240,205 @@ class App extends Component {
       return this.setState({ ipfsHash: result[0].hash });
     });
   };
-  nftlinkByItem(itemId){
-
-  }
   render() {
     return (
       <div>
-        <Navbar account={this.state.account} />
-        &nbsp;
-        {this.state.wrongNetwork ? (
-          <div className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto">
-            <div className="content mr-auto ml-auto">
-              <h1>Please Enter Harmony TestNet </h1>
-            </div>
-          </div>
-        ) : this.state.loading ? (
-          <Loading
-            balance={this.state.balance}
-            totalItems={this.state.totalItems}
-            web3={this.state.web3}
-          />
-        ) : (
-          <Main
-            amount={this.state.amount}
-            balance={this.state.balance}
-            onChange={this.onChange}
-            totalItems={this.state.totalItems}
-            loading={this.state.loading}
-            web3={this.state.web3}
-          />
-        )}
-
-        <div
-          className="container-fluid mt-5 col-m-4"
-          style={{ maxWidth: "1000px" }}
-        >
-          <h5 className="card-title">list of all NFT minted:</h5>
-          <div className="col-sm">
-            <main
-              role="main"
-              className="col-lg-12 text-monospace text-center text-white"
-            >
-              <div className="content mr-auto ml-auto">
-                <div id="content" className="mt-3">
-                  <div className="card mb-4 bg-dark border-danger">
-                    <div>
-                      <div className="row text-center">
-                        {this.state.tokenURL.map((tokenURL, key) => {
-                          return (
-                            <div key={key} className="col-md-3 mb-3">
-                              <div
-                                className="token"
-                                style={{ backgroundColor: "blue" }}
-                              ></div>
-                              <div className="card-body card bg-info mb-3">
-                                <h5 className="card-title">{this.state.nftjson[key].Name }</h5>
-                                <p className="card-text">
-                                creator: {this.state.nftjson[key].account }
-                                </p>
-                                <p className="card-text">
-                                total number of NFT: {this.state.nftjson[key].limit }
-                                </p>
-                                <img
-                                  src={tokenURL}
-                                  className="rounded img-fluid"
-                                  alt="NFT"
-                                  height="150px"
-                                  width="150px"
-                                ></img>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto">
-                        <div>
-                          <Map
-                            height={500}
-                            defaultCenter={[30.394324, -9.561427]}
-                            defaultZoom={14}
-                          >
-                            <Draggable
-                              offset={[60, 87]}
-                              anchor={this.state.anchor}
-                              onDragEnd={(anchor) => this.setState({ anchor })}
-                            >
-                              <img
-                                src={flag}
-                                width={100}
-                                height={95}
-                                alt="flag!"
-                              />
-                            </Draggable>
-                          </Map>
-                        </div>
-                      </div>
-
-                      <form onSubmit={this.handleSubmit}>
-                        <div>
-                          <label>Account: </label>
-                          {this.state.account}
-                        </div>
-                        <div>
-                          <label htmlFor="name">Name</label>
-                          <input
-                            name="name"
-                            placeholder="Name"
-                            value={this.state.name}
-                            onChange={this.handleChange}
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="numbres">limit Number of NFT</label>
-                          <input
-                            name="limit"
-                            placeholder="limit"
-                            value={this.state.limit}
-                            onChange={this.handleChange}
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="numbres">Price</label>
-                          <input
-                            name="price"
-                            placeholder="price"
-                            value={this.state.price}
-                            onChange={this.handleChange}
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="Coordinates">Coordinates: </label>
-                          {" longitude: " +
-                            this.state.anchor[0].toFixed(6) +
-                            ", latitude: " +
-                            this.state.anchor[1].toFixed(6)}
-                        </div>
-
-                        <div>
-                          <input
-                            name="file"
-                            type="file"
-                            onChange={this.handleupload}
-                          />
-                        </div>
-                        {!this.state.ipfsHash ? (
-                          <div
-                            id="loader"
-                            className="spinner-grow text-light"
-                            role="status"
-                          ></div>
-                        ) : (
-                          <div>
-                            <img
-                              src={
-                                "https://ipfs.io/ipfs/" + this.state.ipfsHash
-                              }
-                              height="300"
-                              width="300"
-                              alt=""
-                            />
-                          </div>
-                        )}
-                        <div>
-                          <button>Upload Data</button>
-                        </div>
-                      </form>
-                      <button onClick={this.handledata}>Create nft</button>
-                    </div>
-                    <BuyForm
-                      balance={this.state.balance}
-                      totalItems={this.state.totalItems}
-                      web3={this.state.web3}
-                    />
-                  </div>
+        <div className="App">
+          <Navbar balance={this.state.balance} account={this.state.account} />
+          <Router>
+            <Navigation account={this.state.account} />
+            <Switch>
+              <Route path="/about" exact component={() => <About />} />
+              <Route path="/Harmony" exact component={() => <Harmony />} />
+              <Route
+                path="/MintItems"
+                exact
+                component={() => (
+                  <MintItems
+                    mintNft={this.mintNft}
+                    contract1={this.state.contract1}
+                  />
+                )}
+              />
+            </Switch>
+            {this.state.wrongNetwork ? (
+              <div className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto">
+                <div className="content mr-auto ml-auto">
+                  <h1>Please Enter Harmony TestNet </h1>
                 </div>
               </div>
-            </main>
-          </div>
+            ) : (
+              <Main
+                amount={this.state.amount}
+                balance={this.state.balance}
+                onChange={this.onChange}
+                totalItems={this.state.totalItems}
+                loading={this.state.loading}
+                web3={this.state.web3}
+                tokenURL={this.state.tokenURL}
+                account={this.state.account}
+                nftjson={this.state.nftjson}
+                anchor={this.state.anchor}
+              />
+            )}
+            <div className="card container-fluid mt-10 col-m-10 bg-dark  text-white">
+              <h5> Create Items:</h5>
+              <form onSubmit={this.handleSubmit}>
+                <div className="text-center">
+                  <div className="form-group row">
+                    <label className="col-sm-2 col-form-label">Account: </label>
+                    <div className="col-sm-10 form-control">
+                      {this.state.account}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="form-group row">
+                      <label htmlFor="name" className="col-sm-2 col-form-label">
+                        Name:
+                      </label>
+                      <div className="col-sm-10">
+                        <input
+                          name="name"
+                          placeholder="Name"
+                          className="form-control"
+                          value={this.state.name}
+                          onChange={this.handleChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-group row">
+                    <label
+                      htmlFor="numbres"
+                      className="col-sm-2 col-form-label"
+                    >
+                      limit Number of NFT:
+                    </label>
+                    <div className="col-sm-10">
+                      <input
+                        name="limit"
+                        placeholder="limit"
+                        className="form-control"
+                        value={this.state.limit}
+                        onChange={this.handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group row">
+                    <label
+                      htmlFor="numbres"
+                      className="col-sm-2 col-form-label"
+                    >
+                      Initial Price:{" "}
+                    </label>
+                    <div className="col-sm-10">
+                      <input
+                        name="price"
+                        placeholder="price"
+                        className="form-control"
+                        value={this.state.price}
+                        onChange={this.handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group row">
+                    <label
+                      htmlFor="Coordinates"
+                      className="col-sm-2 col-form-label"
+                    >
+                      Coordinates:{" "}
+                    </label>
+                    <div className="col-sm-10 form-control">
+                      {" longitude: " +
+                        this.state.anchor[0].toFixed(6) +
+                        ", latitude: " +
+                        this.state.anchor[1].toFixed(6)}
+                    </div>
+                  </div>
+                  <div
+                    className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto"
+                    style={{ maxWidth: "1000px" }}
+                  >
+                    <Map
+                      height={500}
+                      defaultCenter={[30.394324, -9.561427]}
+                      defaultZoom={12}
+                    >
+                      <Draggable
+                        offset={[51, 51]}
+                        anchor={this.state.anchor}
+                        onDragEnd={(anchor) => this.setState({ anchor })}
+                      >
+                        <img src={flag} width={100} height={100} alt="flag!" />
+                      </Draggable>
+                      <Marker
+                        width={50}
+                        anchor={[this.state.latitude, this.state.longitude]}
+                      />
+                    </Map>
+                  </div>
+
+                  <div className="input-group">
+                    <input
+                      name="file"
+                      className="form-control"
+                      type="file"
+                      id="inputGroupFile04"
+                      aria-describedby="inputGroupFileAddon04"
+                      aria-label="Upload"
+                      onChange={this.handleupload}
+                    />
+
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      id="inputGroupFileAddon04"
+                    >
+                      Upload
+                    </button>
+                  </div>
+
+                  {!this.state.ipfsHash ? (
+                    <div
+                      id="loader"
+                      className="spinner-grow text-light"
+                      role="status"
+                    ></div>
+                  ) : (
+                    <div>
+                      <img
+                        src={"https://ipfs.io/ipfs/" + this.state.ipfsHash}
+                        height="300"
+                        width="300"
+                        alt=""
+                      />
+                    </div>
+                  )}
+                </div>
+              </form>
+              <br></br>
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                id="inputGroupFileAddon04"
+                onClick={this.handledata}
+              >
+                Creat NFT Item
+              </button>
+            </div>
+
+            <div
+              className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto"
+              style={{ maxWidth: "1000px" }}
+            ></div>
+            <BuyForm
+              balance={this.state.balance}
+              totalItems={this.state.totalItems}
+              web3={this.state.web3}
+            />
+          </Router>
         </div>
       </div>
-      
     );
   }
 }

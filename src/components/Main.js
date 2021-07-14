@@ -5,7 +5,7 @@ import Maplogo from "../logos/MapsLoga.png";
 class Main extends Component {
   render() {
     return (
-      <div className="container-fluid mt-5 col-m-4">
+      <div className="container-fluid mt-10 col-m-10">
         <div className="col-sm">
           <main
             role="main"
@@ -59,6 +59,61 @@ class Main extends Component {
                 </div>
               </div>
             </div>
+          
+        <div
+          className="container-fluid mt-5 col-m-4"
+          style={{ maxWidth: "1000px" }}
+        >
+          <h5 className="card-title">list of all NFT minted:</h5>
+          <div className="col-sm">
+            <main
+              role="main"
+              className="col-lg-12 text-monospace text-center text-white"
+            >
+              <div className="content mr-auto ml-auto">
+                <div id="content" className="mt-3">
+                  <div className="card mb-4 bg-dark border-danger">
+                    <div>
+                      <div className="row text-center">
+                        {this.props.tokenURL.map((tokenURL, key) => {
+                          return (
+                            <div key={key} className="col-md-3 mb-3">
+                              <div
+                                className="token"
+                                style={{ backgroundColor: "blue" }}
+                              ></div>
+                              <div className="card-body card bg-info mb-3">
+                                <h5 className="card-title">{this.props.nftjson[key].Name }</h5>
+                                <p className="card-text">
+                                creator: {this.props.nftjson[key].account }
+                                </p>
+                                <p className="card-text">
+                                total number of NFT: {this.props.nftjson[key].limit }
+                                </p>
+                                <img
+                                  src={tokenURL}
+                                  className="rounded img-fluid"
+                                  alt="NFT"
+                                  height="150px"
+                                  width="150px"
+                                ></img>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                     
+
+
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      
           </main>
         </div>
       </div>
