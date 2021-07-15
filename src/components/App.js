@@ -155,13 +155,12 @@ class App extends Component {
       tokenURL: [],
       nftjson: [],
       name: "",
-      phoneNo: "",
       file: null,
       ipfsHash: null,
       ipfsHash2: null,
       jsondata: null,
     };
-
+    this.setAnchor = this.setAnchor.bind(this);
     this.setState = this.setState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleupload = this.handleupload.bind(this);
@@ -240,6 +239,8 @@ class App extends Component {
       return this.setState({ ipfsHash: result[0].hash });
     });
   };
+  setAnchor = () => {};
+
   render() {
     return (
       <div>
@@ -251,6 +252,24 @@ class App extends Component {
               <Route path="/about" exact component={() => <About />} />
               <Route path="/Harmony" exact component={() => <Harmony />} />
               <Route
+                path="/Main"
+                exact
+                component={() => (
+                  <Main
+                    amount={this.state.amount}
+                    balance={this.state.balance}
+                    onChange={this.onChange}
+                    totalItems={this.state.totalItems}
+                    loading={this.state.loading}
+                    web3={this.state.web3}
+                    tokenURL={this.state.tokenURL}
+                    account={this.state.account}
+                    nftjson={this.state.nftjson}
+                    anchor={this.state.anchor}
+                  />
+                )}
+              />
+              <Route
                 path="/MintItems"
                 exact
                 component={() => (
@@ -261,26 +280,7 @@ class App extends Component {
                 )}
               />
             </Switch>
-            {this.state.wrongNetwork ? (
-              <div className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto">
-                <div className="content mr-auto ml-auto">
-                  <h1>Please Enter Harmony TestNet </h1>
-                </div>
-              </div>
-            ) : (
-              <Main
-                amount={this.state.amount}
-                balance={this.state.balance}
-                onChange={this.onChange}
-                totalItems={this.state.totalItems}
-                loading={this.state.loading}
-                web3={this.state.web3}
-                tokenURL={this.state.tokenURL}
-                account={this.state.account}
-                nftjson={this.state.nftjson}
-                anchor={this.state.anchor}
-              />
-            )}
+
             <div className="card container-fluid mt-10 col-m-10 bg-dark  text-white">
               <h5> Create Items:</h5>
               <form onSubmit={this.handleSubmit}>
@@ -388,8 +388,6 @@ class App extends Component {
                       aria-label="Upload"
                       onChange={this.handleupload}
                     />
-
-
                   </div>
 
                   {!this.state.ipfsHash ? (
@@ -408,16 +406,12 @@ class App extends Component {
                       />
                     </div>
                   )}
-                </div >
+                </div>
                 <div className="text-center">
-                  <button
-                      class="btn btn-outline-secondary "
-                     
-                    >
-                      Upload to IPFS
-                    </button></div >
-                
-
+                  <button class="btn btn-outline-secondary ">
+                    Upload to IPFS
+                  </button>
+                </div>
               </form>
               <br></br>
               <button
@@ -430,10 +424,6 @@ class App extends Component {
               </button>
             </div>
 
-            <div
-              className="container-fluid mt-5 text-monospace text-center mr-auto ml-auto"
-              style={{ maxWidth: "1000px" }}
-            ></div>
             <BuyForm
               balance={this.state.balance}
               totalItems={this.state.totalItems}
