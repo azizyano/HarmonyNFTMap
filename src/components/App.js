@@ -1,12 +1,11 @@
 import React, { Component } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import { Navigation, About, Harmony } from "./";
+import { Navigation, About, Harmony, Footer } from "./";
 import Navbar from "./Navbar";
 import Main from "./Main";
-import BuyForm from "./BuyForm";
 import MintItems from "./MintItems";
 import flag from "../logos/target.png";
-import { Map, Draggable, Marker } from "pigeon-maps";
+import { Map, Draggable } from "pigeon-maps";
 import ipfs from "./IPFSUploader";
 import Web3 from "web3";
 import HERC721 from "../abis/HRC721.json";
@@ -66,6 +65,7 @@ class App extends Component {
       const contract2_address = "0x8e5186051F30e2f5405b0cC311344406328911Af";
       contract1 = new web3.eth.Contract(contract1_abi, contract1_address);
       contract2 = new web3.eth.Contract(contract2_abi, contract2_address);
+      console.log(contract2)
       accounts = await web3.eth.getAccounts();
       balance = await web3.eth.getBalance(accounts[0]);
       totalItems = await contract2.methods.totalItems().call();
@@ -84,16 +84,15 @@ class App extends Component {
       // Load Colors
       for (var i = 1; i <= totalItems; i++) {
         const URL = await contract2.methods.getUrl(i - 1).call();
-        console.log(URL);
         const nftjson = await this.loadingMetadata(URL);
-        console.log(nftjson);
         if (nftjson === undefined) {
-          console.log(nftjson);
+          console.log(i + "nftjson is undefined");
         } else {
           const imgURL = "https://ipfs.io/ipfs/" + nftjson.ipfsHash;
           this.setState({
             tokenURL: [...this.state.tokenURL, imgURL],
             nftjson: [...this.state.nftjson, nftjson],
+            localisation: [...this.state.localisation, nftjson.coords]
           });
         }
       }
@@ -120,6 +119,8 @@ class App extends Component {
       }
     });
   }
+
+
   async loadingMetadata(URL) {
     const resp = await fetch(URL);
     console.log(resp);
@@ -154,13 +155,13 @@ class App extends Component {
       contractAddress2: null,
       tokenURL: [],
       nftjson: [],
+      localisation: [],
       name: "",
       file: null,
       ipfsHash: null,
       ipfsHash2: null,
       jsondata: null,
     };
-    this.setAnchor = this.setAnchor.bind(this);
     this.setState = this.setState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleupload = this.handleupload.bind(this);
@@ -239,8 +240,20 @@ class App extends Component {
       return this.setState({ ipfsHash: result[0].hash });
     });
   };
-  setAnchor = () => {};
-
+  async setSale(tokenId, price){
+    console.log(tokenId, price)
+    const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
+      new BN(1)
+    );
+    console.log(tokenId, price)
+    const gasLimit = 6721900;
+    this.state.contract1.methods
+      .setSale(tokenId, price)
+      .send({ from: this.state.account, gasPrice, gasLimit })
+      .once("receipt", (receipt) => {
+        console.log(receipt);
+      });
+  }
   render() {
     return (
       <div>
@@ -252,10 +265,7 @@ class App extends Component {
               <Route path="/about" exact component={() => <About />} />
               <Route path="/Harmony" exact component={() => <Harmony />} />
               <Route
-                path="/Main"
-                exact
-                component={() => (
-                  <Main
+                path="/Main" exact component={() => ( <Main
                     amount={this.state.amount}
                     balance={this.state.balance}
                     onChange={this.onChange}
@@ -266,6 +276,7 @@ class App extends Component {
                     account={this.state.account}
                     nftjson={this.state.nftjson}
                     anchor={this.state.anchor}
+                    NftPrice={this.NftPrice}
                   />
                 )}
               />
@@ -275,13 +286,12 @@ class App extends Component {
                 component={() => (
                   <MintItems
                     mintNft={this.mintNft}
-                    contract1={this.state.contract1}
+                    setSale={this.setSale}
                   />
                 )}
               />
             </Switch>
-
-            <div className="card container-fluid mt-10 col-m-10 bg-dark  text-white">
+            <div className=" container-fluid mt-10 col-m-10 bg-dark  text-white">
               <h5> Create Items:</h5>
               <form onSubmit={this.handleSubmit}>
                 <div className="text-center">
@@ -371,19 +381,14 @@ class App extends Component {
                       >
                         <img src={flag} width={100} height={100} alt="flag!" />
                       </Draggable>
-                      <Marker
-                        width={50}
-                        anchor={[this.state.latitude, this.state.longitude]}
-                      />
+                       
                     </Map>
                   </div>
 
-                  <div className="input-group">
+                  <div className=" ">
                     <input
                       name="file"
-                      className="form-control"
                       type="file"
-                      id="inputGroupFile04"
                       aria-describedby="inputGroupFileAddon04"
                       aria-label="Upload"
                       onChange={this.handleupload}
@@ -408,26 +413,25 @@ class App extends Component {
                   )}
                 </div>
                 <div className="text-center">
-                  <button class="btn btn-outline-secondary ">
+                  <button className="btn btn-outline-secondary ">
                     Upload to IPFS
                   </button>
                 </div>
               </form>
               <br></br>
+              <div className="text-center">
               <button
-                class="btn btn-outline-secondary"
+                className="btn btn-outline-secondary"
                 type="button"
                 id="inputGroupFileAddon04"
                 onClick={this.handledata}
               >
                 Creat NFT Item
               </button>
-            </div>
+              </div>
+               </div>
 
-            <BuyForm
-              balance={this.state.balance}
-              totalItems={this.state.totalItems}
-              web3={this.state.web3}
+            <Footer
             />
           </Router>
         </div>

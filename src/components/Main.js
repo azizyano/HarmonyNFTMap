@@ -90,6 +90,9 @@ class Main extends Component {
                                 <p className="card-text">
                                 total number of NFT: {this.props.nftjson[key].limit }
                                 </p>
+                                <p className="card-text">
+                                  Pricec:{this.props.nftjson[key].price} ONE 
+                                </p>
                                 <img
                                   src={tokenURL}
                                   className="rounded img-fluid"

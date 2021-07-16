@@ -10,16 +10,16 @@ class MintItems extends Component {
   }
   render() {
     return (
-      <div class="container">
-        <div class="row align-items-center my-5">
-          <div class="col-lg-7">
+      <div className="container">
+        <div className="row align-items-center my-5">
+          <div className="col-lg-7">
             <p>
               After adding your Item it's time to mint your NFT. if you create
               more items just input the item Id.
             </p>
           </div>
-          <div class="col-lg-5">
-            <h1 class="font-weight-light">Mint NFT:</h1>
+          <div className="col-lg-5">
+            <h1 className="font-weight-light">Mint NFT:</h1>
 
             <div className="card container-fluid mt-10 col-m-10 background-color: $indigo-900;  text-white">
               <form
