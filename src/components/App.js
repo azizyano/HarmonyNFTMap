@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import { Navigation, About, Harmony, Footer } from "./";
+import { Navigation, About, Announcement, Footer } from "./";
 import Navbar from "./Navbar";
 import Main from "./Main";
 import MintItems from "./MintItems";
@@ -263,7 +263,9 @@ class App extends Component {
             <Navigation account={this.state.account} />
             <Switch>
               <Route path="/about" exact component={() => <About />} />
-              <Route path="/Harmony" exact component={() => <Harmony />} />
+              <Route path="/Announcement" exact component={() => <Announcement 
+              tokenURL={this.state.tokenURL}
+              />} />
               <Route
                 path="/Main" exact component={() => ( <Main
                     amount={this.state.amount}
