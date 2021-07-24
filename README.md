@@ -2,6 +2,10 @@ This project is a submission to Harmony Hackathon
 
 ## NFT Map in Harmony
 ===================
+<p align="center">
+  <img  width="250" height="250" src="https://github.com/azizyano/HarmonyNFTMap/blob/master/src/logos/MapsLoga.png">
+</p>
+
 
 Mint NFT of Monuments and Historical buildings. metaData of NFT: name, number limit of NFT, price, and localization (longitude and latitude).
 
@@ -62,3 +66,4 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 ### Demo:
 
+[![IMAGE ALT TEXT HERE](https://github.com/azizyano/HarmonyNFTMap/blob/master/src/logos/demo.png)](https://www.youtube.com/watch?v=__mAgcmMEHs)
