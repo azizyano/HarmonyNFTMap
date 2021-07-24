@@ -31,13 +31,14 @@ NFTMAP contract address
 
 to run this app do this steps:
 
-` git clone https://github.com/azizyano/HarmonyNFTMap.git
+`` 
+git clone https://github.com/azizyano/HarmonyNFTMap.git
 
 npm install 
 
-`
+``
 
-you dont need to compile and migrate the contract because al is done by me :) 
+you dont need to compile and migrate the contract because all was done by me :) 
 
 contract deploy in :
 
