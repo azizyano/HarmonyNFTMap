@@ -261,27 +261,14 @@ class App extends Component {
       });
   };
   Approve = (address, item) => {
-    console.log(address, item + 1);
+    console.log(address, item);
     const gasLimit = 6721900;
     this.state.contract1.methods
-      .approve(address, item + 1)
+      .approve(address, item)
       .send({ from: this.state.account, gasLimit })
       .once("receipt", (receipt) => {
         console.log(receipt);
         window.alert("Done!");
-      });
-  };
-  buyTokenOnSale = async (itmeId) => {
-    const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
-      new BN(1)
-    );
-    const gasLimit = 6721900;
-    const price = this.state.contract1.methods.getSalePrice(itmeId).call();
-    this.state.contract1.methods
-      .buyTokenOnSale(itmeId)
-      .send({ value: price, from: this.state.account, gasPrice, gasLimit })
-      .once("receipt", (receipt) => {
-        console.log(receipt);
       });
   };
   handleSubmit = async (event) => {

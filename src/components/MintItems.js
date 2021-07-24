@@ -42,10 +42,10 @@ class MintItems extends Component {
                   </label>
                   <div className="col-sm-10">
                     <input
-                      name="itemId"
+                      name="tokenid"
                       placeholder="Name"
                       className="form-control"
-                      value={this.state.itemId}
+                      value={this.state.tokenid}
                       onChange={this.handleChange}
                       required
                     />
