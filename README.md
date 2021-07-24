@@ -1,7 +1,6 @@
 This project is a submission to Harmony Hackathon 
 
 ## NFT Map in Harmony
-===================
 <p align="center">
   <img  width="250" height="250" src="https://github.com/azizyano/HarmonyNFTMap/blob/master/src/logos/MapsLoga.png">
 </p>
