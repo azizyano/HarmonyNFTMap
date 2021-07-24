@@ -34,7 +34,15 @@ function Navigation(props) {
                   }`}
               >
                 <Link className="nav-link" to="/MintItems">
-                  Mint NFT
+                  NFT setting
+                </Link>
+              </li>
+              <li
+                className={`nav-item  ${props.location.pathname === "/Announcement" ? "active" : ""
+                  }`}
+              >
+                <Link className="nav-link" to="/Announcement">
+                  Announcements
                 </Link>
               </li>
               <li
@@ -43,14 +51,6 @@ function Navigation(props) {
               >
                 <Link className="nav-link" to="/about">
                   About
-                </Link>
-              </li>
-              <li
-                className={`nav-item  ${props.location.pathname === "/Announcement" ? "active" : ""
-                  }`}
-              >
-                <Link className="nav-link" to="/Announcement">
-                Annancements
                 </Link>
               </li>
 

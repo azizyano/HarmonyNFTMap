@@ -1,25 +1,92 @@
-This repository is a sublitiion to Harmony Hackathon 
+This project is a submission to Harmony Hackathon 
 
-
-NFT Map in Harmony 
+## NFT Map in Harmony
 ===================
+
 Mint NFT of Monuments and Historical buildings. metaData of NFT: name, number limit of NFT, price, and localization (longitude and latitude).
 
 1st: fil the form data of your NFT
 
-2nd: ulpad Mitadata to IPFS 
+2nd: ulpad Metadata to IPFS 
 
-3rd:  Add item to the crowdsal contract
+3rd:  Mint NFT 
 
-4nd: Mint NFT 
+4nd: set price and send request to buy NFT 
 
-5nd: in progress..
+5nd: buy 
 
 
 ### 
 contract deploy in :
 HARMONY testnet 
-HRC721 0xd22AEC956Cc97cc25ac0F8F93fdc8F19a430Ad5c
-HRC721CROWDSALE 0x94286a74ef86E19A42046Da8dC5A4486B01AAF88
+NFTMAP contract address
+0x2Cdce057a4523d1Ce857D848A9d93807a65bca55
 
 ### 
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### `npm start`
+
+Runs the app in the development mode.<br>
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+The page will reload if you make edits.<br>
+You will also see any lint errors in the console.
+
+### `npm test`
+
+Launches the test runner in the interactive watch mode.<br>
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+### `npm run build`
+
+Builds the app for production to the `build` folder.<br>
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+The build is minified and the filenames include the hashes.<br>
+Your app is ready to be deployed!
+
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run eject`
+
+**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+
+If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+
+Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+
+## Learn More
+
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+
+### Analyzing the Bundle Size
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+
+### Making a Progressive Web App
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+
+### Advanced Configuration
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+
+### Deployment
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+
+### `npm run build` fails to minify
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify

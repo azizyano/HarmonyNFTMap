@@ -5,56 +5,110 @@ class MintItems extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      output: "0",
+      itemId: "0",
+      tokenid: "0",
+      price: "0",
     };
+    this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value,
+    });
   }
   render() {
     return (
       <div className="container">
         <div className="row align-items-center my-5">
-          <div className="col-lg-7">
+          <div className="col-lg-6">
             <p>
-              After adding your Item it's time to mint your NFT. if you create
-              more items just input the item Id.
+              If you want to buy an NFT you have to send a request to the NFT
+              owner.
             </p>
-          </div>
-          <div className="col-lg-5">
-            <h1 className="font-weight-light">Mint NFT:</h1>
 
-            <div className="card container-fluid mt-10 col-m-10 background-color: $indigo-900;  text-white">
+            <h1 className="font-weight-light">Send request to buy:</h1>
+
+            <div className="card container-fluid mt-10 col-m-10 background-color: $indigo-900;">
               <form
                 className="form-group row"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  let itemId;
-                  itemId = this.input.value.toString();
-                  this.props.mintNft(itemId);
+                  this.props.setBuyer(this.state.tokenid);
                 }}
               >
-                <label className="col-sm-2 col-form-label">
-                  <b>Input the item Id</b>
-                </label>
-
-                <div className="col-sm-10">
-                  <input
-                    type="text"
-                    onChange={(event) => {
-                      const itemId = this.input.value.toString();
-                      this.setState({
-                        output: itemId,
-                      });
-                    }}
-                    ref={(input) => {
-                      this.input = input;
-                    }}
-                    required
-                  />
+                <div className="form-group row">
+                  <label htmlFor="name" className=" col-form-label">
+                    ItemId:
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      name="itemId"
+                      placeholder="Name"
+                      className="form-control"
+                      value={this.state.itemId}
+                      onChange={this.handleChange}
+                      required
+                    />
+                  </div>
                 </div>
+
                 <button
                   type="submit"
                   className="btn btn-primary btn-block btn-lg"
                 >
-                  Mint
+                  Send!
+                </button>
+              </form>
+            </div>
+          </div>
+          <div className="col-lg-6">
+            <p>
+              The Owner of NFT have to Set the price of his NFT if he want to
+              sell it.
+            </p>
+            <h1 className="font-weight-light">Set the NFT Price:</h1>
+
+            <div className="card container-fluid mt-10 col-m-10 background-color: $indigo-900;">
+              <form
+                className="form-group row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  this.props.setSale(this.state.itemId, this.state.price);
+                }}
+              >
+                <div className="form-group row">
+                  <label htmlFor="name" className="col-sm-2 col-form-label">
+                    ItemId:
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      name="itemId"
+                      placeholder="Name"
+                      className="form-control"
+                      value={this.state.itemId}
+                      onChange={this.handleChange}
+                      required
+                    />
+                  </div>
+                  <label htmlFor="name" className="col-sm-2 col-form-label">
+                    Price:
+                  </label>
+                  <div className="col-sm-10">
+                    <input
+                      name="price"
+                      placeholder="Name"
+                      className="form-control"
+                      value={this.state.price}
+                      onChange={this.handleChange}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-block btn-lg"
+                >
+                  Set!
                 </button>
               </form>
             </div>

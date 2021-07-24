@@ -16,10 +16,10 @@ function About() {
           <div class="col-lg-5">
             <h1 class="font-weight-light">About</h1>
             <p>
-              NFT Map is simple app that users can create a geolocalitaion NFT in Harmony blockchain. <br />
-              To create NFT you need to fil the form and move the target to the localisation.
-              the 2nd step is to create Metadata of the nft and upload it to IPSF, you can do this step by clicking the upload button.
-              and finaly create the nft.
+              NFT Map is a DApp that users can create a geolocalitaion NFT in Harmony blockchain. <br />
+              To create NFT you need to fill the form and drag the Marker to the localisation.
+              the 2nd step is to create Metadata of the NFTt and upload it to IPSF, you can do this step by clicking the upload button.
+              Finally set the price in the marketplace to buy/sell the NFT.
             </p>
           </div>
         </div>

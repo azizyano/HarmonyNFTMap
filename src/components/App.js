@@ -8,8 +8,7 @@ import flag from "../logos/target.png";
 import { Map, Draggable } from "pigeon-maps";
 import ipfs from "./IPFSUploader";
 import Web3 from "web3";
-import HERC721 from "../abis/HRC721.json";
-import HRC721Crowdsale from "../abis/HRC721Crowdsale.json";
+import NFTMAP from "../abis/NFTMap.json";
 import "./App.css";
 
 const BN = require("bn.js");
@@ -46,11 +45,9 @@ class App extends Component {
     let accounts,
       network,
       balance,
-      totalItems,
+      totalSupply,
       contract1,
-      contract2,
       contract1_abi,
-      contract2_abi,
       nftbalance,
       web3 = window.web3;
     // Load account
@@ -59,43 +56,49 @@ class App extends Component {
     console.log(networkId);
     const networkData = "1666700000";
     if (networkData) {
-      contract1_abi = HERC721.abi;
-      contract2_abi = HRC721Crowdsale.abi;
-      const contract1_address = "0x7C13bB2Ad930aC5A20077dDb7a35A3bfF837f12f";
-      const contract2_address = "0x8e5186051F30e2f5405b0cC311344406328911Af";
+      contract1_abi = NFTMAP.abi;
+      const contract1_address = "0x2Cdce057a4523d1Ce857D848A9d93807a65bca55";
       contract1 = new web3.eth.Contract(contract1_abi, contract1_address);
-      contract2 = new web3.eth.Contract(contract2_abi, contract2_address);
-      console.log(contract2)
+      console.log(contract1);
       accounts = await web3.eth.getAccounts();
       balance = await web3.eth.getBalance(accounts[0]);
-      totalItems = await contract2.methods.totalItems().call();
+      totalSupply = await contract1.methods.totalSupply().call();
       nftbalance = await contract1.methods.balanceOf(accounts[0]).call();
-
       this.setState({
         account: accounts[0],
         balance: balance,
-        totalItems: totalItems,
+        totalSupply: totalSupply,
         nftbalance: nftbalance,
       });
       this.setState({
         contract1: contract1,
-        contract2: contract2,
       });
-      // Load Colors
-      for (var i = 1; i <= totalItems; i++) {
-        const URL = await contract2.methods.getUrl(i - 1).call();
+      for (var i = 1; i <= totalSupply; i++) {
+        const URL = await contract1.methods.tokenURI(i).call();
+        console.log(URL);
+        const nftPrice = await contract1.methods.getSalePrice(i).call();
+        const nftBuyer = await contract1.methods.getBuyer(i).call();
+        const Ownerof = await contract1.methods.ownerOf(i).call();
+        const approvedAddress = await contract1.methods.getApproved(i).call();
+        console.log(approvedAddress);
         const nftjson = await this.loadingMetadata(URL);
         if (nftjson === undefined) {
-          console.log(i + "nftjson is undefined");
+          console.log("the NFT number:" + i + " is undefined");
         } else {
           const imgURL = "https://ipfs.io/ipfs/" + nftjson.ipfsHash;
           this.setState({
             tokenURL: [...this.state.tokenURL, imgURL],
             nftjson: [...this.state.nftjson, nftjson],
-            localisation: [...this.state.localisation, nftjson.coords]
+            localisation: [...this.state.localisation, nftjson.coords],
+            nftPrice: [...this.state.nftPrice, nftPrice],
+            nftBuyer: [...this.state.nftBuyer, nftBuyer],
+            approvedAddress: [...this.state.approvedAddress, approvedAddress],
+            Ownerof: [...this.state.Ownerof, Ownerof],
           });
         }
       }
+      console.log(this.state.tokenURL);
+      console.log(this.state.nftBuyer);
     } else {
       window.alert("Smart contract not deployed to detected network.");
     }
@@ -107,8 +110,8 @@ class App extends Component {
       } else {
         if (this.state.account) {
           balance = await this.state.web3.eth.getBalance(this.state.account);
-          totalItems = await this.state.contract2.methods.totalItems().call();
-          this.setState({ balance: balance, totalItems: totalItems });
+          totalSupply = await this.state.contract1.methods.totalSupply().call();
+          this.setState({ balance: balance, totalSupply: totalSupply });
         }
         this.setState({
           network: network,
@@ -120,10 +123,8 @@ class App extends Component {
     });
   }
 
-
   async loadingMetadata(URL) {
     const resp = await fetch(URL);
-    console.log(resp);
     return resp
       .json()
       .then((metadata) => {
@@ -141,11 +142,8 @@ class App extends Component {
       longitude: null,
       anchor: [30.394324, -9.561427],
       account: null,
-      limit: "0",
-      price: "0",
       balance: null,
       contract1: null,
-      contract2: null,
       event: null,
       loading: false,
       network: null,
@@ -161,6 +159,10 @@ class App extends Component {
       ipfsHash: null,
       ipfsHash2: null,
       jsondata: null,
+      nftPrice: [],
+      nftBuyer: [],
+      approvedAddress: [],
+      Ownerof: [],
     };
     this.setState = this.setState.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -182,15 +184,27 @@ class App extends Component {
       this.setState({ buffer: Buffer(reader.result) });
     };
   }
+  BuyNFT = (itmeId) => {
+    console.log(itmeId);
 
+    const nftPrice = this.state.nftPrice[itmeId];
+    console.log(nftPrice);
+    console.log(itmeId, nftPrice);
+    const gasLimit = 6721900;
+    this.state.contract1.methods
+      .buyTokenOnSale(itmeId + 1)
+      .send({ value: nftPrice, from: this.state.account, gasLimit })
+      .once("receipt", (receipt) => {
+        console.log(receipt);
+        window.alert("Done!");
+      });
+  };
   handledata = async (event) => {
     event.preventDefault();
     const jsondata = {
       ipfsHash: this.state.ipfsHash,
       account: this.state.account,
       Name: this.state.name,
-      limit: this.state.limit,
-      price: this.state.price,
       coords: this.state.anchor[0] + ", " + this.state.anchor[1],
     };
     var buf = Buffer.from(JSON.stringify(jsondata));
@@ -198,7 +212,7 @@ class App extends Component {
     this.setState({ jsondata: jsondata });
 
     const metadataCid = await ipfs.files.add(
-      { path: this.state.totalItems + ".json", content: buf },
+      { path: this.state.totalSupply + ".json", content: buf },
       { wrapWithDirectory: true }
     );
 
@@ -210,21 +224,62 @@ class App extends Component {
 
     const gasLimit = 6721900;
     const url = "https://ipfs.io/ipfs/" + metadataCid[0].hash;
-    this.state.contract2.methods
-      .addItem(this.state.limit, this.state.price, url)
+    this.state.contract1.methods
+      .mintNft(this.state.account, url)
       .send({ from: this.state.account, gasPrice, gasLimit })
       .once("receipt", (receipt) => {
         console.log(receipt);
       });
   };
-  mintNft = async (itmeId) => {
+  setSale = async (itmeId, price) => {
+    const nftprice = window.web3.utils.toWei(price, "Ether");
+    const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
+      new BN(1)
+    );
+    console.log(nftprice, itmeId);
+    const gasLimit = 6721900;
+    this.state.contract1.methods
+      .setSale(itmeId, nftprice)
+      .send({ from: this.state.account, gasPrice, gasLimit })
+      .once("receipt", (receipt) => {
+        console.log(receipt);
+        window.alert("Done!");
+      });
+  };
+  setBuyer = async (itmeId) => {
+    const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
+      new BN(1)
+    );
+    console.log(itmeId);
+    const gasLimit = 6721900;
+    this.state.contract1.methods
+      .setBuyer(itmeId)
+      .send({ from: this.state.account, gasPrice, gasLimit })
+      .once("receipt", (receipt) => {
+        console.log(receipt);
+        window.alert("Done!");
+      });
+  };
+  Approve = (address, item) => {
+    console.log(address, item + 1);
+    const gasLimit = 6721900;
+    this.state.contract1.methods
+      .approve(address, item + 1)
+      .send({ from: this.state.account, gasLimit })
+      .once("receipt", (receipt) => {
+        console.log(receipt);
+        window.alert("Done!");
+      });
+  };
+  buyTokenOnSale = async (itmeId) => {
     const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
       new BN(1)
     );
     const gasLimit = 6721900;
+    const price = this.state.contract1.methods.getSalePrice(itmeId).call();
     this.state.contract1.methods
-      .mint(this.state.account, itmeId)
-      .send({ from: this.state.account, gasPrice, gasLimit })
+      .buyTokenOnSale(itmeId)
+      .send({ value: price, from: this.state.account, gasPrice, gasLimit })
       .once("receipt", (receipt) => {
         console.log(receipt);
       });
@@ -240,20 +295,6 @@ class App extends Component {
       return this.setState({ ipfsHash: result[0].hash });
     });
   };
-  async setSale(tokenId, price){
-    console.log(tokenId, price)
-    const gasPrice = new BN(await this.state.web3.eth.getGasPrice()).mul(
-      new BN(1)
-    );
-    console.log(tokenId, price)
-    const gasLimit = 6721900;
-    this.state.contract1.methods
-      .setSale(tokenId, price)
-      .send({ from: this.state.account, gasPrice, gasLimit })
-      .once("receipt", (receipt) => {
-        console.log(receipt);
-      });
-  }
   render() {
     return (
       <div>
@@ -263,22 +304,34 @@ class App extends Component {
             <Navigation account={this.state.account} />
             <Switch>
               <Route path="/about" exact component={() => <About />} />
-              <Route path="/Announcement" exact component={() => <Announcement 
-              tokenURL={this.state.tokenURL}
-              />} />
               <Route
-                path="/Main" exact component={() => ( <Main
+                path="/Announcement"
+                exact
+                component={() => (
+                  <Announcement tokenURL={this.state.tokenURL} />
+                )}
+              />
+              <Route
+                path="/Main"
+                exact
+                component={() => (
+                  <Main
                     amount={this.state.amount}
                     balance={this.state.balance}
                     onChange={this.onChange}
-                    totalItems={this.state.totalItems}
+                    totalSupply={this.state.totalSupply}
                     loading={this.state.loading}
                     web3={this.state.web3}
                     tokenURL={this.state.tokenURL}
                     account={this.state.account}
                     nftjson={this.state.nftjson}
                     anchor={this.state.anchor}
-                    NftPrice={this.NftPrice}
+                    nftPrice={this.state.nftPrice}
+                    nftBuyer={this.state.nftBuyer}
+                    Ownerof={this.state.Ownerof}
+                    approvedAddress={this.state.approvedAddress}
+                    BuyNFT={this.BuyNFT}
+                    approve={this.Approve}
                   />
                 )}
               />
@@ -286,10 +339,7 @@ class App extends Component {
                 path="/MintItems"
                 exact
                 component={() => (
-                  <MintItems
-                    mintNft={this.mintNft}
-                    setSale={this.setSale}
-                  />
+                  <MintItems setBuyer={this.setBuyer} setSale={this.setSale} />
                 )}
               />
             </Switch>
@@ -317,40 +367,6 @@ class App extends Component {
                           onChange={this.handleChange}
                         />
                       </div>
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <label
-                      htmlFor="numbres"
-                      className="col-sm-2 col-form-label"
-                    >
-                      limit Number of NFT:
-                    </label>
-                    <div className="col-sm-10">
-                      <input
-                        name="limit"
-                        placeholder="limit"
-                        className="form-control"
-                        value={this.state.limit}
-                        onChange={this.handleChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <label
-                      htmlFor="numbres"
-                      className="col-sm-2 col-form-label"
-                    >
-                      Initial Price:{" "}
-                    </label>
-                    <div className="col-sm-10">
-                      <input
-                        name="price"
-                        placeholder="price"
-                        className="form-control"
-                        value={this.state.price}
-                        onChange={this.handleChange}
-                      />
                     </div>
                   </div>
                   <div className="form-group row">
@@ -383,7 +399,6 @@ class App extends Component {
                       >
                         <img src={flag} width={100} height={100} alt="flag!" />
                       </Draggable>
-                       
                     </Map>
                   </div>
 
@@ -422,19 +437,18 @@ class App extends Component {
               </form>
               <br></br>
               <div className="text-center">
-              <button
-                className="btn btn-outline-secondary"
-                type="button"
-                id="inputGroupFileAddon04"
-                onClick={this.handledata}
-              >
-                Creat NFT Item
-              </button>
+                <button
+                  className="btn btn-outline-secondary"
+                  type="button"
+                  id="inputGroupFileAddon04"
+                  onClick={this.handledata}
+                >
+                  Creat NFT Item
+                </button>
               </div>
-               </div>
+            </div>
 
-            <Footer
-            />
+            <Footer />
           </Router>
         </div>
       </div>
