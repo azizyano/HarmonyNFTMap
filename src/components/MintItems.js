@@ -5,8 +5,8 @@ class MintItems extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      itemId: "0",
-      tokenid: "0",
+      itemId: "1",
+      tokenid: "1",
       price: "0",
     };
     this.handleChange = this.handleChange.bind(this);

@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import logo from '../logos/MapsLoga.png'
 
 class Navbar extends Component {
   render() {
@@ -12,17 +13,20 @@ class Navbar extends Component {
             role="status"
           ></div>
         ) : (
-          <li className="nav-item text-nowrap d-none d-sm-none d-sm-block">
-            <a
-              className="text-white"
+          <div className="container-fluid">
+             <img src={logo} alt="" width="30" height="30" className="d-inline-block align-text-top"></img>
+          Harmony Testnet
+           <a
+              className="text-white nav-link active"
               href={"https://explorer.pops.one/#/address/" + this.props.account}
               target="_blank"
               rel="noopener noreferrer"
             >
               {this.props.account}
             </a>
-            &nbsp;
-          </li>
+            
+          </div>
+ 
         )}
       </nav>
     );

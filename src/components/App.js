@@ -33,15 +33,6 @@ class App extends Component {
   }
 
   async loadBlockchainData() {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const imagePosition = position.coords;
-      const latitude = imagePosition.latitude;
-      const longitude = imagePosition.longitude;
-      this.setState({
-        latitude: latitude,
-        longitude: longitude,
-      });
-    });
     let accounts,
       network,
       balance,
@@ -54,12 +45,10 @@ class App extends Component {
     this.setState({ web3: web3 });
     const networkId = await web3.eth.net.getId();
     console.log(networkId);
-    const networkData = "1666700000";
-    if (networkData) {
+    if (networkId === 1666700000) {
       contract1_abi = NFTMAP.abi;
       const contract1_address = "0x2Cdce057a4523d1Ce857D848A9d93807a65bca55";
       contract1 = new web3.eth.Contract(contract1_abi, contract1_address);
-      console.log(contract1);
       accounts = await web3.eth.getAccounts();
       balance = await web3.eth.getBalance(accounts[0]);
       totalSupply = await contract1.methods.totalSupply().call();
@@ -97,10 +86,8 @@ class App extends Component {
           });
         }
       }
-      console.log(this.state.tokenURL);
-      console.log(this.state.nftBuyer);
     } else {
-      window.alert("Smart contract not deployed to detected network.");
+      window.alert("You are not in Harmony TestNet!");
     }
 
     window.ethereum.on("chainChanged", async (chainId) => {
@@ -135,41 +122,7 @@ class App extends Component {
       });
   }
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      latitude: null,
-      longitude: null,
-      anchor: [30.394324, -9.561427],
-      account: null,
-      balance: null,
-      contract1: null,
-      event: null,
-      loading: false,
-      network: null,
-      web3: null,
-      wrongNetwork: false,
-      contractAddress1: null,
-      contractAddress2: null,
-      tokenURL: [],
-      nftjson: [],
-      localisation: [],
-      name: "",
-      file: null,
-      ipfsHash: null,
-      ipfsHash2: null,
-      jsondata: null,
-      nftPrice: [],
-      nftBuyer: [],
-      approvedAddress: [],
-      Ownerof: [],
-    };
-    this.setState = this.setState.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.handleupload = this.handleupload.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handledata = this.handledata.bind(this);
-  }
+
   handleChange(event) {
     this.setState({
       [event.target.name]: event.target.value,
@@ -187,12 +140,12 @@ class App extends Component {
   BuyNFT = (itmeId) => {
     console.log(itmeId);
 
-    const nftPrice = this.state.nftPrice[itmeId];
+    const nftPrice = this.state.nftPrice[itmeId-1];
     console.log(nftPrice);
     console.log(itmeId, nftPrice);
     const gasLimit = 6721900;
     this.state.contract1.methods
-      .buyTokenOnSale(itmeId + 1)
+      .buyTokenOnSale(itmeId)
       .send({ value: nftPrice, from: this.state.account, gasLimit })
       .once("receipt", (receipt) => {
         console.log(receipt);
@@ -282,6 +235,39 @@ class App extends Component {
       return this.setState({ ipfsHash: result[0].hash });
     });
   };
+  constructor(props) {
+    super(props);
+    this.state = {
+      anchor: [30.394324, -9.561427],
+      account: null,
+      balance: null,
+      contract1: null,
+      event: null,
+      loading: false,
+      network: null,
+      web3: null,
+      wrongNetwork: false,
+      contractAddress1: null,
+      contractAddress2: null,
+      tokenURL: [],
+      nftjson: [],
+      localisation: [],
+      name: "",
+      file: null,
+      ipfsHash: null,
+      ipfsHash2: null,
+      jsondata: null,
+      nftPrice: [],
+      nftBuyer: [],
+      approvedAddress: [],
+      Ownerof: [],
+    };
+    this.setState = this.setState.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleupload = this.handleupload.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handledata = this.handledata.bind(this);
+  }
   render() {
     return (
       <div>
